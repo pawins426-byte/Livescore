@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LiveScore - Tès vokal ak Son</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background-color: #0d0d0d;
+            color: #ffffff;
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+        }
+        h1 {
+            color: #ff6600;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        .match-box {
+            background-color: #161616;
+            border: 2px solid #ff6600;
+            border-radius: 12px;
+            padding: 20px;
+            max-width: 400px;
+            margin: 20px auto;
+        }
+        .teams {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .score {
+            font-size: 32px;
+            color: #ff6600;
+            letter-spacing: 5px;
+        }
+        .btn-section {
+            margin-top: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-width: 400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        button {
+            padding: 15px;
+            font-size: 15px;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            color: white;
+            transition: 0.2s;
+        }
+        .btn-gol { background-color: #ff6600; }
+        .btn-korner { background-color: #2def53; color: black; }
+        .btn-katon { background-color: #ffcc00; color: black; }
+        
+        .instruction {
+            font-size: 13px;
+            color: #888;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>LIVESCORE - LAB SIFLÈT AK VWA</h1>
+    <p class="instruction">Peze bouton yo pou w tande diferans lan ak vwa k ap site jwè a</p>
+
+    <div class="match-box">
+        <div class="teams">Real Madrid 🆚 Barcelona</div>
+        <div class="score" id="match-score">0 - 0</div>
+        <div style="color: #888; margin-top: 10px;" id="match-status">Match an dirèk</div>
+    </div>
+
+    <div class="btn-section">
+        <!-- 3 Bouton Tès yo -->
+        <button class="btn-gol" onclick="testeGol('Kylian Mbappé')">⚽ Simile GÒÒÒL (Vwa + Siflèt)</button>
+        <button class="btn-korner" onclick="testeKorner()">🚩 Simile KÒNÈ (Siflèt kout)</button>
+        <button class="btn-katon" onclick="testeKaton()">🟨 Simile KATON (Son grav)</button>
+    </div>
+
+    <script>
+        let anrejistreGol = 0;
+
+        // 1. SISTÈM POU TELEFÒN NAN PALE (TEXT-TO-SPEECH)
+        function paleAkMounNan(tèks) {
+            if ('speechSynthesis' in window) {
+                // Kanpe si te gen yon lòt vwa k ap pale
+                window.speechSynthesis.cancel(); 
+                
+                let pawòl = new SpeechSynthesisUtterance(tèks);
+                pawòl.lang = 'fr-FR'; // Nou mete l an fransè pwofesyonèl
+                pawòl.rate = 1.0;     // Vitès vwa a
+                pawòl.pitch = 1.0;    // Ton vwa a
+                
+                window.speechSynthesis.speak(pawòl);
+            } else {
+                console.log("Telefòn sa a pa ka pale");
+            }
+        }
+
+        // 2. LOJIK AUDIO CONTEXT POU KREYE SIFLÈT KI DIFERAN
+        function jweSonSiflet(tip) {
+            try {
+                let audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                let osc = audioCtx.createOscillator();
+                let gain = audioCtx.createGain();
+                
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                let kounye a = audioCtx.currentTime;
+
+                if (tip === "gol") {
+                    // GÒL: Doub siflèt byen fò ak de frekans diferan (Bip! Biiiiip!)
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(1000, kounye a);
+                    gain.gain.setValueAtTime(0.3, kounye a);
+                    osc.start();
+                    osc.stop(kounye a + 0.15);
+
+                    setTimeout(() => {
+                        let osc2 = audioCtx.createOscillator();
+                        let gain2 = audioCtx.createGain();
+                        osc2.connect(gain2); gain2.connect(audioCtx.destination);
+                        osc2.type = 'sine';
+                        osc2.frequency.setValueAtTime(1300, audioCtx.currentTime);
+                        gain2.gain.setValueAtTime(0.4, audioCtx.currentTime);
+                        osc2.start(); osc2.stop(audioCtx.currentTime + 0.35);
+                    }, 180);
+
+                } else if (tip === "korner") {
+                    // KÒNÈ: Yon siflèt kout k ap monte anlè (Twit!)
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(800, kounye a);
+                    osc.frequency.exponentialRampToValueAtTime(1500, kounye a + 0.15);
+                    gain.gain.setValueAtTime(0.2, kounye a);
+                    osc.start();
+                    osc.stop(kounye a + 0.15);
+
+                } else if (tip === "katon") {
+                    // KATON: Yon son pi grav k ap desann (Bwouuup!)
+                    osc.type = 'triangle'; // Son an ap pi gra
+                    osc.frequency.setValueAtTime(500, kounye a);
+                    osc.frequency.exponentialRampToValueAtTime(200, kounye a + 0.3);
+                    gain.gain.setValueAtTime(0.3, kounye a);
+                    osc.start();
+                    osc.stop(kounye a + 0.3);
+                }
+
+            } catch (e) {
+                console.log("Erè odyo: " + e);
+            }
+        }
+
+        // 3. FONKSYON LÈ W KLIME SOU BOUTON YO
+        function testeGol(nonJwe) {
+            anrejistreGol++;
+            document.getElementById('match-score').innerText = `${anrejistreGol} - 0`;
+            document.getElementById('match-status').innerText = `But de ${nonJwe}!`;
+
+            // Premye bagay: li bay siflèt gòl la
+            jweSonSiflet("gol");
+
+            // Dezyèm bagay: 0.5 segonn aprè, li site non jwè a byen klè!
+            setTimeout(() => {
+                paleAkMounNan(`But de ${nonJwe}!`);
+            }, 500);
+        }
+
+        function testeKorner() {
+            document.getElementById('match-status').innerText = "⚡ Corner à suivre...";
+            jweSonSiflet("korner");
+        }
+
+        function testeKaton() {
+            document.getElementById('match-status').innerText = "🟨 Carton jaune accordé.";
+            jweSonSiflet("katon");
+        }
+    </script>
+</body>
+</html>
