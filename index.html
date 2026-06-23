@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LiveScore - Idantite Pa W</title>
+    <style>
+        /* DESIGN MODÈN: NWA AK NEON ORANGE */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0d0d0d;
+            color: #ffffff;
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            background-color: #1a1a1a;
+            padding: 20px;
+            text-align: center;
+            border-bottom: 3px solid #ff6600;
+            box-shadow: 0 4px 10px rgba(255, 102, 0, 0.2);
+        }
+        header h1 {
+            margin: 0;
+            font-size: 26px;
+            color: #ff6600;
+            letter-spacing: 2px;
+        }
+        .container {
+            max-width: 500px;
+            margin: 20px auto;
+            padding: 10px;
+        }
+        .lig-title {
+            font-size: 14px;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+            margin-top: 20px;
+            padding-left: 5px;
+        }
+        /* MATCH CARDS */
+        .match-card {
+            background-color: #161616;
+            border: 1px solid #262626;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: 0.3s;
+            cursor: pointer;
+        }
+        .match-card:hover {
+            border-color: #444;
+        }
+        .match-card.live-active {
+            border-left: 4px solid #ff6600;
+        }
+        .match-info-clickable {
+            display: flex;
+            align-items: center;
+            flex-grow: 1;
+            justify-content: space-between;
+        }
+        .fav-btn {
+            background: none;
+            border: none;
+            color: #444;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 0 15px 0 0;
+            z-index: 10; /* Pou anpeche klik zetwal la louvri stat la */
+        }
+        .fav-btn.active {
+            color: #ffaa00;
+        }
+        .status {
+            color: #ff6600;
+            font-weight: bold;
+            font-size: 13px;
+            min-width: 50px;
+        }
+        .status.termine {
+            color: #888;
+        }
+        .teams {
+            flex-grow: 1;
+            padding-left: 10px;
+        }
+        .team {
+            font-size: 16px;
+            font-weight: 500;
+            margin: 4px 0;
+        }
+        .score-box {
+            background-color: #222;
+            border-radius: 6px;
+            padding: 8px 12px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            min-width: 35px;
+        }
+        .score-box div {
+            margin: 2px 0;
+        }
+        /* FÈNÈT ESTATISTIK (MODAL) */
+        .modal {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: #1a1a1a;
+            border-top: 3px solid #ff6600;
+            border-radius: 20px 20px 0 0;
+            box-shadow: 0 -5px 25px rgba(0,0,0,0.8);
+            z-index: 100;
+            transition: 0.3s ease-in-out;
+        }
+        .modal-content {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #333;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+        .modal-header h2 {
+            margin: 0;
+            font-size: 18px;
+            color: #ff6600;
+        }
+        .close-btn {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        .stat-row {
+            margin: 15px 0;
+        }
+        .stat-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+        .stat-bar-bg {
+            background-color: #333;
+            height: 8px;
+            border-radius: 4px;
+            display: flex;
+            overflow: hidden;
+        }
+        .stat-bar-home {
+            background-color: #ff6600;
+            height: 100%;
+        }
+        .stat-bar-away {
+            background-color: #ffffff;
+            height: 100%;
+            margin-left: auto;
+        }
+        /* BOUTON SIMULATION */
+        .sim-section {
+            text-align: center;
+            margin-top: 30px;
+            background: #1a1a1a;
+            padding: 15px;
+            border-radius: 10px;
+        }
+        .btn-sim {
+            background-color: #ff6600;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>LIVESCORE</h1>
+    </header>
+
+    <div class="container">
+        <div class="lig-title">🏆 UEFA Champions League</div>
+        <div id="matches-container"></div>
+
+        <div class="sim-section">
+            <p style="font-size: 14px; color: #aaa;">Mete Real Madrid nan ⭐ epi klike la pou w tande son gòl la:</p>
+            <button class="btn-sim" onclick="simileYonGol()">⚡ Simile yon Gòl (Test Sound)</button>
+        </div>
+    </div>
+
+    <div id="statModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-match-title">Estatistik Match</h2>
+                <button class="close-btn" onclick="fermeStats()">×</button>
+            </div>
+            <div id="modal-stats-body">
+                </div>
+        </div>
+    </div>
+
+    <script>
+        // Done Match ak tout Estatistik yo ladan yo
+        let lisMatchYo = [
+            { 
+                id: 101, status: "55'", teamHome: "Real Madrid", teamAway: "Barcelona", scoreHome: 0, scoreAway: 0, isFav: false,
+                stats: { possessionHome: 52, possessionAway: 48, shotsHome: 8, shotsAway: 5, foulsHome: 6, foulsAway: 9 }
+            },
+            { 
+                id: 102, status: "20'", teamHome: "Man. City", teamAway: "Liverpool", scoreHome: 1, scoreAway: 1, isFav: false,
+                stats: { possessionHome: 60, possessionAway: 40, shotsHome: 4, shotsAway: 4, foulsHome: 3, foulsAway: 5 }
+            },
+            { 
+                id: 103, status: "Fin", teamHome: "Bayern Munich", teamAway: "PSG", scoreHome: 2, scoreAway: 0, isFav: false,
+                stats: { possessionHome: 45, possessionAway: 55, shotsHome: 12, shotsAway: 11, foulsHome: 10, foulsAway: 8 }
+            }
+        ];
+
+        function kreyiDashboard() {
+            const container = document.getElementById('matches-container');
+            container.innerHTML = '';
+
+            lisMatchYo.forEach(match => {
+                const isLive = match.status !== "Fin" ? "live-active" : "";
+                const starClass = match.isFav ? "active" : "";
+                const starIcon = match.isFav ? "★" : "☆";
+
+                const html = `
+                    <div class="match-card ${isLive}">
+                        <button class="fav-btn ${starClass}" onclick="event.stopPropagation(); toggleFavorite(${match.id});">${starIcon}</button>
+                        
+                        <div class="match-info-clickable" onclick="louvriStats(${match.id})">
+                            <div class="status ${match.status === 'Fin' ? 'termine' : ''}">${match.status}</div>
+                            <div class="teams">
+                                <div class="team">${match.teamHome}</div>
+                                <div class="team">${match.teamAway}</div>
+                            </div>
+                            <div class="score-box">
+                                <div>${match.scoreHome}</div>
+                                <div>${match.scoreAway}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += html;
+            });
+        }
+
+        function toggleFavorite(id) {
+            const match = lisMatchYo.find(m => m.id === id);
+            if (match) {
+                match.isFav = !match.isFav;
+                kreyiDashboard();
+            }
+        }
+
+        // SISTÈM OBLIGATWA POU TELEFÒN (Audio Synthesis - Pa ka bloke)
+        function jweSonGol() {
+            try {
+                let audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                
+                // Premye bip (Siflèt kout 1)
+                let osc1 = audioCtx.createOscillator();
+                let gain1 = audioCtx.createGain();
+                osc1.connect(gain1); gain1.connect(audioCtx.destination);
+                osc1.type = 'sine'; osc1.frequency.setValueAtTime(1000, audioCtx.currentTime);
+                gain1.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                osc1.start(); osc1.stop(audioCtx.currentTime + 0.15);
+
+                // Dezyèm bip pi fò deswit aprè (Siflèt kout 2)
+                setTimeout(() => {
+                    let osc2 = audioCtx.createOscillator();
+                    let gain2 = audioCtx.createGain();
+                    osc2.connect(gain2); gain2.connect(audioCtx.destination);
+                    osc2.type = 'sine'; osc2.frequency.setValueAtTime(1200, audioCtx.currentTime);
+                    gain2.gain.setValueAtTime(0.4, audioCtx.currentTime);
+                    osc2.start(); osc2.stop(audioCtx.currentTime + 0.3);
+                }, 180);
+
+            } catch (e) {
+                console.log(e);
+            }
+        }
+
+        function simileYonGol() {
+            const realMatch = lisMatchYo.find(m => m.id === 101);
+            if (realMatch) {
+                realMatch.scoreHome = 1;
+                realMatch.status = "56'";
+                // Ogmante chout nan gòl tou pou stat la chanje!
+                realMatch.stats.shotsHome = 9; 
+                kreyiDashboard();
+
+                if (realMatch.isFav) {
+                    jweSonGol();
+                    setTimeout(() => {
+                        alert("⚽ GÒÒÒL pou Real Madrid! (1 - 0)");
+                    }, 100);
+                } else {
+                    alert("Gòl fè! Men li pa sonnen paske ou pa t mete match la nan favorites (⭐).");
+                }
+            }
+        }
+
+        // LOJIK POU LOUVRI POP-UP ESTATISTIK YO
+        function louvriStats(id) {
+            const match = lisMatchYo.find(m => m.id === id);
+            if (!match) return;
+
+            document.getElementById('modal-match-title').innerText = `${match.teamHome} vs ${match.teamAway}`;
+            
+            const statsBody = document.getElementById('modal-stats-body');
+            statsBody.innerHTML = `
+                <div class="stat-row">
+                    <div class="stat-labels">
+                        <span>${match.stats.possessionHome}%</span>
+                        <span>Possession</span>
+                        <span>${match.stats.possessionAway}%</span>
+                    </div>
+                    <div class="stat-bar-bg">
+                        <div class="stat-bar-home" style="width: ${match.stats.possessionHome}%"></div>
+                    </div>
+                </div>
+
+                <div class="stat-row">
+                    <div class="stat-labels">
+                        <span>${match.stats.shotsHome}</span>
+                        <span>Tirs au but</span>
+                        <span>${match.stats.shotsAway}</span>
+                    </div>
+                    <div class="stat-bar-bg">
+                        <div class="stat-bar-home" style="width: ${(match.stats.shotsHome / (match.stats.shotsHome + match.stats.shotsAway)) * 100}%"></div>
+                    </div>
+                </div>
+
+                <div class="stat-row">
+                    <div class="stat-labels">
+                        <span>${match.stats.foulsHome}</span>
+                        <span>Fautes</span>
+                        <span>${match.stats.foulsAway}</span>
+                    </div>
+                    <div class="stat-bar-bg">
+                        <div class="stat-bar-home" style="width: ${(match.stats.foulsHome / (match.stats.foulsHome + match.stats.foulsAway)) * 100}%"></div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('statModal').style.display = 'block';
+        }
+
+        function fermeStats() {
+            document.getElementById('statModal').style.display = 'none';
+        }
+
+        kreyiDashboard();
+    </script>
+</body>
+</html>
