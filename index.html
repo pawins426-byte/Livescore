@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LiveScore - Pro</title>
+    <style>
+        /* DESIGN PREMIUM: DARK MODE & NEON ORANGE */
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #0d0d0d;
+            color: #ffffff;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+        header {
+            background-color: #1a1a1a;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #ff6600;
+        }
+        header h1 {
+            margin: 0;
+            font-size: 22px;
+            color: #ff6600;
+            letter-spacing: 1px;
+        }
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 10px;
+            padding-bottom: 80px;
+        }
+
+        /* FILTRE POU LIG YO */
+        .lig-header {
+            font-size: 13px;
+            color: #aaa;
+            text-transform: uppercase;
+            margin: 15px 0 8px 5px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* MATCH CARDS (LIS PRENSIPAL) */
+        .match-card {
+            background-color: #161616;
+            border: 1px solid #222;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+        }
+        .match-card.live {
+            border-left: 4px solid #ff6600;
+        }
+        .fav-btn {
+            background: none;
+            border: none;
+            color: #444;
+            font-size: 22px;
+            cursor: pointer;
+            padding: 0 10px 0 0;
+        }
+        .fav-btn.active {
+            color: #ffaa00;
+        }
+        .match-main-info {
+            display: flex;
+            align-items: center;
+            flex-grow: 1;
+            justify-content: space-between;
+        }
+        .time-status {
+            color: #ff6600;
+            font-weight: bold;
+            font-size: 13px;
+            min-width: 45px;
+        }
+        .time-status.ended {
+            color: #777;
+        }
+        .teams-container {
+            flex-grow: 1;
+            padding-left: 10px;
+        }
+        .team-row {
+            font-size: 15px;
+            margin: 3px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .flag {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        .score-display {
+            background-color: #222;
+            border-radius: 6px;
+            padding: 6px 10px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        /* EKRA DETAY MATCH KONPLÈ (FULL SCREEN VIEW) */
+        #match-details-view {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #0d0d0d;
+            z-index: 1000;
+            overflow-y: auto;
+        }
+        .details-header {
+            background: linear-gradient(180deg, #1a1a1a 0%, #111 100%);
+            padding: 20px;
+            text-align: center;
+            position: relative;
+        }
+        .back-btn {
+            position: absolute;
+            top: 20px;
+            left: 15px;
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        .scoreboard-large {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 25px;
+            margin-top: 20px;
+        }
+        .large-team {
+            text-align: center;
+            width: 100px;
+        }
+        .large-team img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            margin-bottom: 8px;
+        }
+        .large-team div {
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .large-score {
+            font-size: 36px;
+            font-weight: bold;
+            letter-spacing: 4px;
+        }
+        .match-time-large {
+            color: #ff6600;
+            font-weight: bold;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+
+        /* SLIDABLE TABS MENU (Jan sa ye nan image_2.png) */
+        .tabs-menu {
+            display: flex;
+            gap: 10px;
+            padding: 15px;
+            overflow-x: auto;
+            border-bottom: 1px solid #222;
+            background-color: #111;
+        }
+        .tabs-menu::-webkit-scrollbar {
+            display: none;
+        }
+        .tab-btn {
+            background-color: #222;
+            color: #aaa;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: bold;
+            white-space: nowrap;
+            cursor: pointer;
+        }
+        .tab-btn.active {
+            background-color: rgba(255, 102, 0, 0.2);
+            color: #ff6600;
+            border: 1px solid #ff6600;
+        }
+
+        /* KONTNI CHAK TAB */
+        .tab-content {
+            display: none;
+            padding: 15px;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        .tab-content.active {
+            display: block;
+        }
+
+        /* STATISTIQUES GRAPHICS (PROGRESS BARS) */
+        .stat-bar-container {
+            margin: 18px 0;
+        }
+        .stat-titles {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            margin-bottom: 6px;
+            color: #ddd;
+        }
+        .progress-bg {
+            background-color: #222;
+            height: 8px;
+            border-radius: 4px;
+            display: flex;
+            overflow: hidden;
+        }
+        .bar-home {
+            background-color: #ff6600;
+            height: 100%;
+        }
+        .bar-away {
+            background-color: #ffffff;
+            height: 100%;
+            margin-left: auto;
+        }
+
+        /* COMPOSITION (LINEUPS) */
+        .lineup-grid {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+        }
+        .lineup-column {
+            width: 48%;
+        }
+        .lineup-column h3 {
+            font-size: 14px;
+            color: #ff6600;
+            border-bottom: 1px solid #222;
+            padding-bottom: 5px;
+        }
+        .player-name {
+            font-size: 14px;
+            padding: 6px 0;
+            border-bottom: 1px solid #151515;
+            color: #ccc;
+        }
+
+        /* TABLEAU CLASSEMENT (Jan sa ye nan image_3.png) */
+        .table-classement {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            text-align: left;
+        }
+        .table-classement th {
+            color: #666;
+            padding: 10px 5px;
+            border-bottom: 1px solid #222;
+            font-weight: bold;
+        }
+        .table-classement td {
+            padding: 12px 5px;
+            border-bottom: 1px solid #161616;
+        }
+        .col-pos { width: 30px; font-weight: bold; color: #888;}
+        .col-team { display: flex; align-items: center; gap: 8px; font-weight: 500;}
+        .col-center { text-align: center; width: 40px; }
+        .pos-1 { color: #2def53; } /* Zòn kalifikasyon */
+        .pos-2 { color: #2def53; }
+
+        /* BOUTON TEST */
+        .sim-box {
+            text-align: center;
+            margin-top: 20px;
+            background: #161616;
+            padding: 12px;
+            border-radius: 10px;
+        }
+        .btn-orange {
+            background-color: #ff6600;
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            font-size: 13px;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- LIS PRENSIPAL SIT LA -->
+    <div id="main-view">
+        <header>
+            <h1>LIVESCORE</h1>
+        </header>
+        
+        <div class="container">
+            <div class="lig-header">🏆 Coupe du Monde - Tour 2</div>
+            <div id="matches-list">
+                <!-- Match yo ap moute la otomatikman -->
+            </div>
+
+            <!-- Bouton pou simulation an -->
+            <div class="sim-box">
+                <p style="font-size: 13px; color: #888; margin: 0 0 8px 0;">Mete Jordanie nan ⭐, epi klike la pou w tande son gòl la:</p>
+                <button class="btn-orange" onclick="deklancheGolSimulation()">⚡ Simile yon Gòl (Test)</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- EKRA DETAY MATCH KONPLÈ (LÈW KLIKE SOU YON MATCH) -->
+    <div id="match-details-view">
+        <div class="details-header">
+            <button class="back-btn" onclick="tounenNanLis()">←</button>
+            <div style="font-size: 12px; color: #aaa; text-transform: uppercase;">Coupe du Monde</div>
+            
+            <div class="scoreboard-large">
+                <div class="large-team">
+                    <img id="det-flag-home" src="" alt="">
+                    <div id="det-name-home">Jordanie</div>
+                </div>
+                <div class="large-score" id="det-score-large">0 - 0</div>
+                <div class="large-team">
+                    <img id="det-flag-away" src="" alt="">
+                    <div id="det-name-away">Algérie</div>
+                </div>
+            </div>
+            <div class="match-time-large" id="det-time-large">20:39</div>
+        </div>
+
+        <!-- TABS MENU (Image 2) -->
+        <div class="tabs-menu">
+            <button class="tab-btn active" onclick="chanjeTab(event, 'tab-details')">Détails</button>
+            <button class="tab-btn" onclick="chanjeTab(event, 'tab-composition')">Composition</button>
+            <button class="tab-btn" onclick="chanjeTab(event, 'tab-stats')">Statistiques</button>
+            <button class="tab-btn" onclick="chanjeTab(event, 'tab-classement')">Classement</button>
+        </div>
+
+        <!-- KONTNI TAB DETAY -->
+        <div id="tab-details" class="tab-content active">
+            <h3 style="color: #ff6600; font-size: 15px;">Événements du Match</h3>
+            <p style="color: #666; font-size: 14px;">Début du match à l'heure.</p>
+        </div>
+
+        <!-- KONTNI TAB COMPOSITION -->
+        <div id="tab-composition" class="tab-content">
+            <div class="lineup-grid" id="lineup-content">
+                <!-- Jwè yo ap parèt la -->
+            </div>
+        </div>
+
+        <!-- KONTNI TAB STATISTIQUES (Image 2) -->
+        <div id="tab-stats" class="tab-content">
+            <div id="stats-content">
+                <!-- Grafis yo ap parèt la -->
+            </div>
+        </div>
+
+        <!-- KONTNI TAB CLASSEMENT (Image 3) -->
+        <div id="tab-classement" class="tab-content">
+            <table class="table-classement">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Équipe</th>
+                        <th class="col-center">M</th>
+                        <th class="col-center">GD</th>
+                        <th class="col-center">PTS</th>
+                    </tr>
+                </thead>
+                <tbody id="classement-table-body">
+                    <!-- Tab la ap bati la otomatikman -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // DONE AP LIKASYON AN (MATCH, STATS, COMPOSITION, CLASSEMENT)
+        let matchDone = {
+            id: 201,
+            status: "20:39",
+            teamHome: "Jordanie",
+            flagHome: "https://flagcdn.com/w40/jo.png",
+            teamAway: "Algérie",
+            flagAway: "https://flagcdn.com/w40/dz.png",
+            scoreHome: 0,
+            scoreAway: 0,
+            isFav: false,
+            stats: { possessionHome: 24, possessionAway: 76, shotsHome: 2, shotsAway: 8, cornersHome: 0, cornersAway: 1, foulsHome: 5, foulsAway: 3 },
+            lineupHome: ["Abou Laila", "Haddad", "Nasib", "Arab", "Mardi", "Al-Rawabdeh", "Ayed", "Al-Tamari", "Olwan", "Al-Naimat", "Sadeh"],
+            lineupAway: ["Mandrea", "Atal", "Mandi", "Bensebaini", "Aït-Nouri", "Bentaleb", "Feghouli", "Chaïbi", "Mahrez", "Bounedjah", "Belaïli"],
+            classement: [
+                { pos: 1, name: "Argentine", flag: "https://flagcdn.com/w20/ar.png", m: 2, gd: 5, pts: 6 },
+                { pos: 2, name: "Autriche", flag: "https://flagcdn.com/w20/at.png", m: 2, gd: 0, pts: 3 },
+                { pos: 3, name: "Jordanie", flag: "https://flagcdn.com/w20/jo.png", m: 2, gd: -2, pts: 1 },
+                { pos: 4, name: "Algérie", flag: "https://flagcdn.com/w20/dz.png", m: 2, gd: -3, pts: 1 }
+            ]
+        };
+
+        // AFICHE MATCH YO SOU LIS PRENSIPAL LA
+        function kreyiDashboard() {
+            const container = document.getElementById('matches-list');
+            container.innerHTML = '';
+
+            const isLiveClass = matchDone.status.includes(':') ? "live" : "";
+            const starIcon = matchDone.isFav ? "★" : "☆";
+            const starClass = matchDone.isFav ? "active" : "";
+
+            container.innerHTML = `
+                <div class="match-card ${isLiveClass}">
+                    <button class="fav-btn ${starClass}" onclick="event.stopPropagation(); toggleFavorite();">${starIcon}</button>
+                    <div class="match-main-info" onclick="louvriGwoEkranDetay()">
+                        <div class="time-status">${matchDone.status}</div>
+                        <div class="teams-container">
+                            <div class="team-row"><img class="flag" src="${matchDone.flagHome}"> ${matchDone.teamHome}</div>
+                            <div class="team-row"><img class="flag" src="${matchDone.flagAway}"> ${matchDone.teamAway}</div>
+                        </div>
+                        <div class="score-display">
+                            <div>${matchDone.scoreHome}</div>
+                            <div>${matchDone.scoreAway}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function toggleFavorite() {
+            matchDone.isFav = !matchDone.isFav;
+            kreyiDashboard();
+        }
+
+        // LOJIK NAVIGASYON (LOUVRI / FIXE)
+        function louvriGwoEkranDetay() {
+            document.getElementById('det-flag-home').src = matchDone.flagHome;
+            document.getElementById('det-flag-away').src = matchDone.flagAway;
+            document.getElementById('det-name-home').innerText = matchDone.teamHome;
+            document.getElementById('det-name-away').innerText = matchDone.teamAway;
+            document.getElementById('det-score-large').innerText = `${matchDone.scoreHome} - ${matchDone.scoreAway}`;
+            document.getElementById('det-time-large').innerText = matchDone.status;
+
+            mouteStatsGwoEkran();
+            mouteLineupsGwoEkran();
+            mouteClassementGwoEkran();
+
+            document.getElementById('main-view').style.display = 'none';
+            document.getElementById('match-details-view').style.display = 'block';
+        }
+
+        function tounenNanLis() {
+            document.getElementById('match-details-view').style.display = 'none';
+            document.getElementById('main-view').style.display = 'block';
+        }
+
+        // NAVIGASYON ANNDAN TABS YO (Détails, Composition, etc.)
+        function chanjeTab(anven, tabId) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+            anven.currentTarget.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        }
+
+        // MODAL STATISTIQUES DYNAMIQUES
+        function mouteStatsGwoEkran() {
+            const statsContainer = document.getElementById('stats-content');
+            const s = matchDone.stats;
+
+            function kreyiStatRow(label, homeVal, awayVal) {
+                const total = homeVal + awayVal === 0 ? 1 : homeVal + awayVal;
+                const pctHome = (homeVal / total) * 100;
+                return `
+                    <div class="stat-bar-container">
+                        <div class="stat-titles"><span>${homeVal}</span><span>${label}</span><span>${awayVal}</span></div>
+                        <div class="progress-bg">
+                            <div class="bar-home" style="width: ${pctHome}%"></div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            statsContainer.innerHTML = `
+                ${kreyiStatRow("Possession de balle (%)", s.possessionHome, s.possessionAway)}
+                ${kreyiStatRow("Tirs au but", s.shotsHome, s.shotsAway)}
+                ${kreyiStatRow("Corners", s.cornersHome, s.cornersAway)}
+                ${kreyiStatRow("Fautes", s.foulsHome, s.foulsAway)}
+            `;
+        }
+
+        // COMPOSITION
+        function mouteLineupsGwoEkran() {
+            const lineupContainer = document.getElementById('lineup-content');
+            let homeHtml = `<h3>${matchDone.teamHome}</h3>`;
+            matchDone.lineupHome.forEach(p => homeHtml += `<div class="player-name">🏃 ${p}</div>`);
+
+            let awayHtml = `<h3>${matchDone.teamAway}</h3>`;
+            matchDone.lineupAway.forEach(p => awayHtml += `<div class="player-name">🏃 ${p}</div>`);
+
+            lineupContainer.innerHTML = `
+                <div class="lineup-column">${homeHtml}</div>
+                <div class="lineup-column">${awayHtml}</div>
+            `;
+        }
+
+        // CLASSEMENT TABLE (Image 3)
+        function mouteClassementGwoEkran() {
+            const tbody = document.getElementById('classement-table-body');
+            tbody.innerHTML = '';
+
+            matchDone.classement.forEach(c => {
+                const isQualif = c.pos <= 2 ? `pos-${c.pos}` : "";
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="col-pos ${isQualif}">${c.pos}</td>
+                        <td class="col-team"><img class="flag" src="${c.flag}"> ${c.name}</td>
+                        <td class="col-center">${c.m}</td>
+                        <td class="col-center">${c.gd > 0 ? '+' + c.gd : c.gd}</td>
+                        <td class="col-center" style="font-weight:bold;">${c.pts}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        // ALÈT SON ELEKTRONIK (Anti-bloke sou telefòn)
+        function jweSifletAudio() {
+            try {
+                let audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                
+                let osc1 = audioCtx.createOscillator();
+                let gain1 = audioCtx.createGain();
+                osc1.connect(gain1); gain1.connect(audioCtx.destination);
+                osc1.type = 'sine'; osc1.frequency.setValueAtTime(1100, audioCtx.currentTime);
+                gain1.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                osc1.start(); osc1.stop(audioCtx.currentTime + 0.12);
+
+                setTimeout(() => {
+                    let osc2 = audioCtx.createOscillator();
+                    let gain2 = audioCtx.createGain();
+                    osc2.connect(gain2); gain2.connect(audioCtx.destination);
+                    osc2.type = 'sine'; osc2.frequency.setValueAtTime(1300, audioCtx.currentTime);
+                    gain2.gain.setValueAtTime(0.4, audioCtx.currentTime);
+                    osc2.start(); osc2.stop(audioCtx.currentTime + 0.25);
+                }, 150);
+            } catch (e) { console.log(e); }
+        }
+
+        // SIMULATION GÒL
+        function deklancheGolSimulation() {
+            matchDone.scoreHome = 1;
+            matchDone.status = "20:58"; // Jan sa te ye nan dezyèm foto a
+            matchDone.stats.shotsHome = 3; // Yon chout an plis
+            
+            // Mete Jordanie 3èm ak pi bon pwen
+            matchDone.classement.find(c => c.name === "Jordanie").pts = 2; 
+
+            kreyiDashboard();
+            
+            // Si li louvri sou gwo ekran an deja, n ap mete vizyèl la ajou dirèk
+            if (document.getElementById('match-details-view').style.display === 'block') {
+                louvriGwoEkranDetay();
+            }
+
+            if (matchDone.isFav) {
+                jweSifletAudio();
+                setTimeout(() => { alert(`⚽ GÒÒÒL pou ${matchDone.teamHome}! (1 - 0)`); }, 50);
+            } else {
+                alert("Gòl make! (Mete match la nan ⭐ si w vle l sonnen).");
+            }
+        }
+
+        // Lanse l pou premye fwa
+        kreyiDashboard();
+    </script>
+</body>
+</html>
